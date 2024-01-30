@@ -1,11 +1,6 @@
+"""This module implements the core developer interface for YouTube-Get.
 """
-This module implements the core developer interface for pytube.
 
-The problem domain of the :class:`YouTube <YouTube> class focuses almost
-exclusively on the developer interface. Pytube offloads the heavy lifting to
-smaller peripheral modules and functions.
-
-"""
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
@@ -191,10 +186,7 @@ class YouTube:
         # build instances of :class:`Stream <Stream>`
         # Initialize stream objects
         for stream in stream_manifest:
-            video = Stream(
-                stream=stream,
-                monostate=self.stream_monostate,
-            )
+            video = Stream(stream=stream, monostate=self.stream_monostate)
             self._fmt_streams.append(video)
 
         self.stream_monostate.title = self.title
@@ -269,8 +261,6 @@ class YouTube:
     @property
     def caption_tracks(self) -> List[Caption]:
         """Get a list of :class:`Caption <Caption>`.
-
-        :rtype: List[Caption]
         """
         raw_tracks = (
             self.vid_info.get("captions", {})
@@ -282,16 +272,12 @@ class YouTube:
     @property
     def captions(self) -> CaptionQuery:
         """Interface to query caption tracks.
-
-        :rtype: :class:`CaptionQuery <CaptionQuery>`.
         """
         return CaptionQuery(self.caption_tracks)
 
     @property
     def streams(self) -> StreamQuery:
         """Interface to query both adaptive (DASH) and progressive streams.
-
-        :rtype: :class:`StreamQuery <StreamQuery>`.
         """
         self.check_availability()
         return StreamQuery(self.fmt_streams)
@@ -299,8 +285,6 @@ class YouTube:
     @property
     def thumbnail_url(self) -> str:
         """Get the thumbnail url image.
-
-        :rtype: str
         """
         thumbnail_details = (
             self.vid_info.get("videoDetails", {})
@@ -316,8 +300,6 @@ class YouTube:
     @property
     def publish_date(self):
         """Get the publish date.
-
-        :rtype: datetime
         """
         if self._publish_date:
             return self._publish_date
@@ -332,8 +314,6 @@ class YouTube:
     @property
     def title(self) -> str:
         """Get the video title.
-
-        :rtype: str
         """
         if self._title:
             return self._title
@@ -342,7 +322,7 @@ class YouTube:
             self._title = self.vid_info['videoDetails']['title']
         except KeyError:
             # Check_availability will raise the correct exception in most cases
-            #  if it doesn't, ask for a report.
+            # if it doesn't, ask for a report.
             self.check_availability()
             raise exceptions.YouTubeError(
                 (
@@ -361,40 +341,30 @@ class YouTube:
     @property
     def description(self) -> str:
         """Get the video description.
-
-        :rtype: str
         """
         return self.vid_info.get("videoDetails", {}).get("shortDescription")
 
     @property
     def rating(self) -> float:
         """Get the video average rating.
-
-        :rtype: float
-
         """
         return self.vid_info.get("videoDetails", {}).get("averageRating")
 
     @property
     def length(self) -> int:
         """Get the video length in seconds.
-
-        :rtype: int
         """
         return int(self.vid_info.get('videoDetails', {}).get('lengthSeconds'))
 
     @property
     def views(self) -> int:
         """Get the number of the times the video has been viewed.
-
-        :rtype: int
         """
         return int(self.vid_info.get("videoDetails", {}).get("viewCount"))
 
     @property
     def author(self) -> str:
         """Get the video author.
-        :rtype: str
         """
         if self._author:
             return self._author
@@ -411,32 +381,24 @@ class YouTube:
     @property
     def keywords(self) -> List[str]:
         """Get the video keywords.
-
-        :rtype: List[str]
         """
         return self.vid_info.get('videoDetails', {}).get('keywords', [])
 
     @property
     def channel_id(self) -> str:
         """Get the video poster's channel id.
-
-        :rtype: str
         """
         return self.vid_info.get('videoDetails', {}).get('channelId', None)
 
     @property
     def channel_url(self) -> str:
         """Construct the channel url for the video's poster from the channel id.
-
-        :rtype: str
         """
         return f'https://www.youtube.com/channel/{self.channel_id}'
 
     @property
     def metadata(self) -> Optional[YouTubeMetadata]:
         """Get the metadata for the video.
-
-        :rtype: YouTubeMetadata
         """
         if self._metadata:
             return self._metadata
@@ -447,12 +409,9 @@ class YouTube:
     def register_on_progress_callback(self, func: Callable[[Any, bytes, int], None]):
         """Register a download progress callback function post initialization.
 
-        :param callable func:
-            A callback function that takes ``stream``, ``chunk``,
-             and ``bytes_remaining`` as parameters.
-
-        :rtype: None
-
+        Args:
+            callable (func): A callback function that takes `stream`, `chunk`, 
+                and `bytes_remaining` as parameters.
         """
         self.stream_monostate.on_progress = func
 
@@ -461,9 +420,6 @@ class YouTube:
 
         :param callable func:
             A callback function that takes ``stream`` and  ``file_path``.
-
-        :rtype: None
-
         """
         self.stream_monostate.on_complete = func
 
@@ -472,9 +428,6 @@ class YouTube:
         """Construct a :class:`YouTube <YouTube>` object from a video id.
 
         :param str video_id:
-            The video id of the YouTube video.
-
-        :rtype: :class:`YouTube <YouTube>`
-        
+            The video id of the YouTube video.    
         """
         return YouTube(f"https://www.youtube.com/watch?v={video_id}")

@@ -15,4 +15,5 @@ from youtube_get.modules.playlist import Playlist
 from youtube_get.modules.youtube import YouTube
 from youtube_get.utils.captions import Caption
 from youtube_get.utils.streams import Stream
+from youtube_get.utils.query import CaptionQuery
 
