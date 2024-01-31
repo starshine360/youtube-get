@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import socket
+from typing import Iterable
 from functools import lru_cache
 from urllib import parse
 from urllib.error import URLError
@@ -13,7 +14,7 @@ from urllib.request import Request, urlopen
 from youtube_get.utils.exceptions import RegexMatchError, MaxRetriesExceeded
 from youtube_get.utils.helpers import regex_search
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 default_range_size = 9437184  # 9MB
 
@@ -39,14 +40,14 @@ def _execute_request(
     return urlopen(request, timeout=timeout)  # nosec
 
 
-def get(url, extra_headers=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+def get(url, extra_headers=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT) -> str:
     """Send an http GET request.
 
     :param str url:
         The URL to perform the GET request for.
     :param dict extra_headers:
         Extra headers to add to the request
-    :rtype: str
+ 
     :returns:
         UTF-8 encoded string of response
     """
@@ -56,7 +57,7 @@ def get(url, extra_headers=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     return response.read().decode("utf-8")
 
 
-def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT) -> str:
     """Send an http POST request.
 
     :param str url:
@@ -65,7 +66,7 @@ def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIME
         Extra headers to add to the request
     :param dict data:
         The data to send on the POST request
-    :rtype: str
+
     :returns:
         UTF-8 encoded string of response
     """
@@ -88,13 +89,14 @@ def post(url, extra_headers=None, data=None, timeout=socket._GLOBAL_DEFAULT_TIME
 
 
 def seq_stream(
-    url,
+    url: str,
     timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
     max_retries=0
-):
+) -> Iterable[bytes]:
     """Read the response in sequence.
-    :param str url: The URL to perform the GET request for.
-    :rtype: Iterable[bytes]
+
+    Args:
+        url (str): The URL to perform the GET request for.
     """
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
@@ -133,13 +135,14 @@ def seq_stream(
 
 
 def stream(
-    url,
+    url: str,
     timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-    max_retries=0
-):
+    max_retries: int=0
+) -> Iterable[bytes]:
     """Read the response in chunks.
-    :param str url: The URL to perform the GET request for.
-    :rtype: Iterable[bytes]
+
+    Args:
+        url (str): The URL to perform the GET request for.
     """
     file_size: int = default_range_size  # fake filesize to start
     downloaded = 0
@@ -201,6 +204,7 @@ def filesize(url):
     """Fetch size in bytes of file at given URL
 
     :param str url: The URL to get the size of
+
     :returns: int: size in bytes of remote file
     """
     return int(head(url)["content-length"])
@@ -211,6 +215,7 @@ def seq_filesize(url):
     """Fetch size in bytes of file at given URL from sequential requests
 
     :param str url: The URL to get the size of
+
     :returns: int: size in bytes of remote file
     """
     total_filesize = 0
@@ -258,12 +263,12 @@ def seq_filesize(url):
     return total_filesize
 
 
-def head(url):
+def head(url) -> dict:
     """Fetch headers returned http GET request.
 
     :param str url:
         The URL to perform the GET request for.
-    :rtype: dict
+
     :returns:
         dictionary of lowercase headers
     """

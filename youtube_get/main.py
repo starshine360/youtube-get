@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """A simple command line application to download youtube videos."""
+
 import argparse
 import gzip
 import json
@@ -7,7 +8,7 @@ import logging
 import os
 import shutil
 import sys
-import datetime as dt
+import datetime
 import subprocess  # nosec
 from typing import List, Optional
 
@@ -19,7 +20,7 @@ from youtube_get import CaptionQuery, Playlist, Stream, YouTube
 from youtube_get.utils.helpers import safe_filename, setup_logger
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 def main():
@@ -124,7 +125,7 @@ def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None
         )
 
     if args.list_captions:
-        _print_available_captions(youtube.captions)
+        print_available_captions(youtube.captions)
     
     if args.list:
         display_streams(youtube)
@@ -151,6 +152,161 @@ def _perform_args_on_youtube(youtube: YouTube, args: argparse.Namespace) -> None
         ffmpeg_process(
             youtube=youtube, resolution=args.ffmpeg, target=args.target
         )
+
+
+
+def download_highest_resolution_progressive(
+    youtube: YouTube, resolution: str, target: Optional[str] = None
+) -> None:
+    """Start downloading the highest resolution progressive stream.
+
+    :param YouTube youtube:
+        A valid YouTube object.
+    :param str resolution:
+        YouTube video resolution.
+    :param str target:
+        Target directory for download
+    """
+    youtube.register_on_progress_callback(on_progress)
+    try:
+        stream = youtube.streams.get_highest_resolution()
+    except exceptions.VideoUnavailable as err:
+        print(f"No video streams available: {err}")
+    else:
+        try:
+            _download(stream, target=target)
+        except KeyboardInterrupt:
+            sys.exit()
+
+
+def download_by_itag(
+    youtube: YouTube, itag: int, target: Optional[str] = None
+) -> None:
+    """Start downloading a YouTube video.
+
+    :param YouTube youtube:
+        A valid YouTube object.
+    :param int itag:
+        YouTube format identifier code.
+    :param str target:
+        Target directory for download
+    """
+    stream = youtube.streams.get_by_itag(itag)
+    if stream is None:
+        print(f"Could not find a stream with itag: {itag}")
+        print("Try one of these:")
+        display_streams(youtube)
+        sys.exit()
+
+    youtube.register_on_progress_callback(on_progress)
+
+    try:
+        _download(stream, target=target)
+    except KeyboardInterrupt:
+        sys.exit()
+
+
+def download_by_resolution(
+    youtube: YouTube, resolution: str, target: Optional[str] = None
+) -> None:
+    """Start downloading a YouTube video.
+
+    :param YouTube youtube:
+        A valid YouTube object.
+    :param str resolution:
+        YouTube video resolution.
+    :param str target:
+        Target directory for download
+    """
+    # TODO(nficano): allow dash itags to be selected
+    stream = youtube.streams.get_by_resolution(resolution)
+    if stream is None:
+        print(f"Could not find a stream with resolution: {resolution}")
+        print("Try one of these:")
+        display_streams(youtube)
+        sys.exit()
+
+    youtube.register_on_progress_callback(on_progress)
+
+    try:
+        _download(stream, target=target)
+    except KeyboardInterrupt:
+        sys.exit()
+
+
+def download_caption(
+    youtube: YouTube, lang_code: Optional[str], target: Optional[str] = None
+) -> None:
+    """Download a caption for the YouTube video.
+
+    :param YouTube youtube:
+        A valid YouTube object.
+    :param str lang_code:
+        Language code desired for caption file.
+        Prints available codes if the value is None
+        or the desired code is not available.
+    :param str target:
+        Target directory for download
+    """
+    try:
+        caption = youtube.captions[lang_code]
+        downloaded_path = caption.download(
+            title=youtube.title, output_path=target
+        )
+        print(f"Saved caption file to: {downloaded_path}")
+    except KeyError:
+        print(f"Unable to find caption with code: {lang_code}")
+        print_available_captions(youtube.captions)
+
+
+def download_audio(
+    youtube: YouTube, filetype: str, target: Optional[str] = None
+) -> None:
+    """
+    Given a filetype, downloads the highest quality available audio stream for a
+    YouTube video.
+
+    :param YouTube youtube:
+        A valid YouTube object.
+    :param str filetype:
+        Desired file format to download.
+    :param str target:
+        Target directory for download
+    """
+    audio = (
+        youtube.streams.filter(only_audio=True, subtype=filetype)
+        .order_by("abr")
+        .last()
+    )
+
+    if audio is None:
+        print("No audio only stream found. Try one of these:")
+        display_streams(youtube)
+        sys.exit()
+
+    youtube.register_on_progress_callback(on_progress)
+
+    try:
+        _download(audio, target=target)
+    except KeyboardInterrupt:
+        sys.exit()
+
+
+def display_streams(youtube: YouTube) -> None:
+    """Probe YouTube video and lists its available formats.
+
+    :param YouTube youtube:
+        A valid YouTube watch URL.
+
+    """
+    for stream in youtube.streams:
+        print(stream)
+
+
+def print_available_captions(captions: CaptionQuery) -> None:
+    print(
+        f"Available caption codes are: {', '.join(c.code for c in captions)}"
+    )
 
 
 def display_progress_bar(
@@ -348,159 +504,6 @@ def _ffmpeg_downloader(
     os.unlink(video_path)
     os.unlink(audio_path)
 
-
-def download_by_itag(
-    youtube: YouTube, itag: int, target: Optional[str] = None
-) -> None:
-    """Start downloading a YouTube video.
-
-    :param YouTube youtube:
-        A valid YouTube object.
-    :param int itag:
-        YouTube format identifier code.
-    :param str target:
-        Target directory for download
-    """
-    stream = youtube.streams.get_by_itag(itag)
-    if stream is None:
-        print(f"Could not find a stream with itag: {itag}")
-        print("Try one of these:")
-        display_streams(youtube)
-        sys.exit()
-
-    youtube.register_on_progress_callback(on_progress)
-
-    try:
-        _download(stream, target=target)
-    except KeyboardInterrupt:
-        sys.exit()
-
-
-def download_by_resolution(
-    youtube: YouTube, resolution: str, target: Optional[str] = None
-) -> None:
-    """Start downloading a YouTube video.
-
-    :param YouTube youtube:
-        A valid YouTube object.
-    :param str resolution:
-        YouTube video resolution.
-    :param str target:
-        Target directory for download
-    """
-    # TODO(nficano): allow dash itags to be selected
-    stream = youtube.streams.get_by_resolution(resolution)
-    if stream is None:
-        print(f"Could not find a stream with resolution: {resolution}")
-        print("Try one of these:")
-        display_streams(youtube)
-        sys.exit()
-
-    youtube.register_on_progress_callback(on_progress)
-
-    try:
-        _download(stream, target=target)
-    except KeyboardInterrupt:
-        sys.exit()
-
-
-def download_highest_resolution_progressive(
-    youtube: YouTube, resolution: str, target: Optional[str] = None
-) -> None:
-    """Start downloading the highest resolution progressive stream.
-
-    :param YouTube youtube:
-        A valid YouTube object.
-    :param str resolution:
-        YouTube video resolution.
-    :param str target:
-        Target directory for download
-    """
-    youtube.register_on_progress_callback(on_progress)
-    try:
-        stream = youtube.streams.get_highest_resolution()
-    except exceptions.VideoUnavailable as err:
-        print(f"No video streams available: {err}")
-    else:
-        try:
-            _download(stream, target=target)
-        except KeyboardInterrupt:
-            sys.exit()
-
-
-def display_streams(youtube: YouTube) -> None:
-    """Probe YouTube video and lists its available formats.
-
-    :param YouTube youtube:
-        A valid YouTube watch URL.
-
-    """
-    for stream in youtube.streams:
-        print(stream)
-
-
-def _print_available_captions(captions: CaptionQuery) -> None:
-    print(
-        f"Available caption codes are: {', '.join(c.code for c in captions)}"
-    )
-
-
-def download_caption(
-    youtube: YouTube, lang_code: Optional[str], target: Optional[str] = None
-) -> None:
-    """Download a caption for the YouTube video.
-
-    :param YouTube youtube:
-        A valid YouTube object.
-    :param str lang_code:
-        Language code desired for caption file.
-        Prints available codes if the value is None
-        or the desired code is not available.
-    :param str target:
-        Target directory for download
-    """
-    try:
-        caption = youtube.captions[lang_code]
-        downloaded_path = caption.download(
-            title=youtube.title, output_path=target
-        )
-        print(f"Saved caption file to: {downloaded_path}")
-    except KeyError:
-        print(f"Unable to find caption with code: {lang_code}")
-        _print_available_captions(youtube.captions)
-
-
-def download_audio(
-    youtube: YouTube, filetype: str, target: Optional[str] = None
-) -> None:
-    """
-    Given a filetype, downloads the highest quality available audio stream for a
-    YouTube video.
-
-    :param YouTube youtube:
-        A valid YouTube object.
-    :param str filetype:
-        Desired file format to download.
-    :param str target:
-        Target directory for download
-    """
-    audio = (
-        youtube.streams.filter(only_audio=True, subtype=filetype)
-        .order_by("abr")
-        .last()
-    )
-
-    if audio is None:
-        print("No audio only stream found. Try one of these:")
-        display_streams(youtube)
-        sys.exit()
-
-    youtube.register_on_progress_callback(on_progress)
-
-    try:
-        _download(audio, target=target)
-    except KeyboardInterrupt:
-        sys.exit()
 
 
 if __name__ == "__main__":

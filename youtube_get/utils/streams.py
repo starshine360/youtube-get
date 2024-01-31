@@ -19,7 +19,7 @@ from youtube_get.utils.helpers import safe_filename, target_directory
 from youtube_get.utils.itags import get_format_profile
 from youtube_get.utils.monostate import Monostate
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class Stream:
@@ -355,8 +355,6 @@ class Stream:
 
     def stream_to_buffer(self, buffer: BinaryIO) -> None:
         """Write the media stream to buffer
-
-        :rtype: io.BytesIO buffer
         """
         bytes_remaining = self.filesize
         logger.info(

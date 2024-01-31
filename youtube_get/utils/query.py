@@ -241,11 +241,9 @@ class StreamQuery(Sequence):
 
         :param int itag:
             YouTube format identifier code.
-        :rtype: :class:`Stream <Stream>` or None
+ 
         :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
-
+            The :class:`Stream <Stream>` matching the given itag or None if not found.
         """
         return self.itag_index.get(int(itag))
 
@@ -256,11 +254,9 @@ class StreamQuery(Sequence):
 
         :param str resolution:
             Video resolution i.e. "720p", "480p", "360p", "240p", "144p"
-        :rtype: :class:`Stream <Stream>` or None
+       
         :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
-
+            The :class:`Stream <Stream>` matching the given itag or None if not found.
         """
         return self.filter(
             progressive=True, subtype="mp4", resolution=resolution
@@ -269,10 +265,8 @@ class StreamQuery(Sequence):
     def get_lowest_resolution(self) -> Optional[Stream]:
         """Get lowest resolution stream that is a progressive mp4.
 
-        :rtype: :class:`Stream <Stream>` or None
-        :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
+        Returns:
+            The :class:`Stream <Stream>` matching the given itag or None if not found.
 
         """
         return (
@@ -284,11 +278,8 @@ class StreamQuery(Sequence):
     def get_highest_resolution(self) -> Optional[Stream]:
         """Get highest resolution stream that is a progressive video.
 
-        :rtype: :class:`Stream <Stream>` or None
-        :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
-
+        Returns:
+            The :class:`Stream <Stream>` matching the given itag or None if not found.
         """
         return self.filter(progressive=True).order_by("resolution").last()
 
@@ -297,10 +288,9 @@ class StreamQuery(Sequence):
 
         :param str subtype:
             Audio subtype, defaults to mp4
-        :rtype: :class:`Stream <Stream>` or None
+
         :returns:
-            The :class:`Stream <Stream>` matching the given itag or None if
-            not found.
+            The :class:`Stream <Stream>` matching the given itag or None if not found.
         """
         return (
             self.filter(only_audio=True, subtype=subtype)
@@ -312,7 +302,7 @@ class StreamQuery(Sequence):
         """Filter stream by OTF, useful if some streams have 404 URLs
 
         :param bool is_otf: Set to False to retrieve only non-OTF streams
-        :rtype: :class:`StreamQuery <StreamQuery>`
+
         :returns: A StreamQuery object with otf filtered streams
         """
         return self._filter([lambda s: s.is_otf == is_otf])
@@ -320,11 +310,9 @@ class StreamQuery(Sequence):
     def first(self) -> Optional[Stream]:
         """Get the first :class:`Stream <Stream>` in the results.
 
-        :rtype: :class:`Stream <Stream>` or None
         :returns:
-            the first result of this query or None if the result doesn't
-            contain any streams.
-
+            the first result of this query or None if the result 
+            doesn't contain any streams.
         """
         try:
             return self.fmt_streams[0]
@@ -334,11 +322,9 @@ class StreamQuery(Sequence):
     def last(self):
         """Get the last :class:`Stream <Stream>` in the results.
 
-        :rtype: :class:`Stream <Stream>` or None
         :returns:
             Return the last result of this query or None if the result
             doesn't contain any streams.
-
         """
         try:
             return self.fmt_streams[-1]
@@ -348,8 +334,6 @@ class StreamQuery(Sequence):
     @deprecated("Get the size of this list directly using len()")
     def count(self, value: Optional[str] = None) -> int:  # pragma: no cover
         """Get the count of items in the list.
-
-        :rtype: int
         """
         if value:
             return self.fmt_streams.count(value)
@@ -359,9 +343,6 @@ class StreamQuery(Sequence):
     @deprecated("This object can be treated as a list, all() is useless")
     def all(self) -> List[Stream]:  # pragma: no cover
         """Get all the results represented by this query as a list.
-
-        :rtype: list
-
         """
         return self.fmt_streams
 
@@ -387,9 +368,7 @@ class CaptionQuery(Mapping):
         """
         self.lang_code_index = {c.code: c for c in captions}
 
-    @deprecated(
-        "This object can be treated as a dictionary, i.e. captions['en']"
-    )
+    @deprecated("This object can be treated as a dictionary, i.e. captions['en']")
     def get_by_language_code(
         self, lang_code: str
     ) -> Optional[Caption]:  # pragma: no cover
@@ -397,7 +376,7 @@ class CaptionQuery(Mapping):
 
         :param str lang_code:
             The code that identifies the caption language.
-        :rtype: :class:`Caption <Caption>` or None
+
         :returns:
             The :class:`Caption <Caption>` matching the given ``lang_code`` or
             None if it does not exist.
@@ -407,9 +386,6 @@ class CaptionQuery(Mapping):
     @deprecated("This object can be treated as a dictionary")
     def all(self) -> List[Caption]:  # pragma: no cover
         """Get all the results represented by this query as a list.
-
-        :rtype: list
-
         """
         return list(self.lang_code_index.values())
 

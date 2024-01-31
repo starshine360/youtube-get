@@ -16,8 +16,8 @@ class Caption:
     def __init__(self, caption_track: Dict):
         """Construct a :class:`Caption <Caption>`.
 
-        :param dict caption_track:
-            Caption track data extracted from ``watch_html``.
+        Args:
+            caption_track (dict): Caption track data extracted from ``watch_html``.
         """
         self.url = caption_track.get("baseUrl")
 
@@ -64,8 +64,7 @@ class Caption:
     def float_to_srt_time_format(d: float) -> str:
         """Convert decimal durations into proper srt format.
 
-        :rtype: str
-        :returns:
+        Returns: 
             SubRip Subtitle (str) formatted time duration.
 
         float_to_srt_time_format(3.89) -> '00:00:03,890'
@@ -78,8 +77,8 @@ class Caption:
     def xml_caption_to_srt(self, xml_captions: str) -> str:
         """Convert xml caption tracks to "SubRip Subtitle (srt)".
 
-        :param str xml_captions:
-            XML formatted caption tracks.
+        Args:
+            xml_captions (str): XML formatted caption tracks.
         """
         segments = []
         root = ElementTree.fromstring(xml_captions)
@@ -111,26 +110,19 @@ class Caption:
     ) -> str:
         """Write the media stream to disk.
 
-        :param title:
-            Output filename (stem only) for writing media file.
-            If one is not specified, the default filename is used.
-        :type title: str
-        :param srt:
-            Set to True to download srt, false to download xml. Defaults to True.
-        :type srt bool
-        :param output_path:
-            (optional) Output path for writing media file. If one is not
-            specified, defaults to the current working directory.
-        :type output_path: str or None
-        :param filename_prefix:
-            (optional) A string that will be prepended to the filename.
-            For example a number in a playlist or the name of a series.
-            If one is not specified, nothing will be prepended
-            This is separate from filename so you can use the default
-            filename but still add a prefix.
-        :type filename_prefix: str or None
-
-        :rtype: str
+        Args:
+            title (str): Output filename (stem only) for writing media file.
+                If one is not specified, the default filename is used.
+            
+            srt (bool): Set to True to download srt, false to download xml. Defaults to True.
+            
+            output_path (str): Output path for writing media file. If one is not specified, 
+                defaults to the current working directory.
+            
+            filename_prefix (str): A string that will be prepended to the filename. For example 
+                a number in a playlist or the name of a series. If one is not specified, nothing 
+                will be prepended. This is separate from filename so you can use the default
+                filename but still add a prefix.
         """
         if title.endswith(".srt") or title.endswith(".xml"):
             filename = ".".join(title.split(".")[:-1])

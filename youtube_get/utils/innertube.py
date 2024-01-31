@@ -214,8 +214,6 @@ _default_clients = {
     },
 }
 
-_token_timeout = 1800
-
 _cache_dir = pathlib.Path(__file__).parent.resolve() / '__cache__'
 
 _token_file = os.path.join(_cache_dir, 'tokens.json')
@@ -223,6 +221,7 @@ _token_file = os.path.join(_cache_dir, 'tokens.json')
 
 class InnerTube:
     """Object for interacting with the innertube API."""
+
     def __init__(self, client='ANDROID_MUSIC', use_oauth=False, allow_cache=True):
         """Initialize an InnerTube object.
 
@@ -434,12 +433,12 @@ class InnerTube:
         ...
         # return self._call_api(endpoint, query, self.base_data)  # noqa:E800
 
-    def player(self, video_id):
+    def player(self, video_id) -> dict:
         """Make a request to the player endpoint.
 
         :param str video_id:
             The video id to get player info for.
-        :rtype: dict
+  
         :returns:
             Raw player info results.
         """
@@ -450,19 +449,17 @@ class InnerTube:
         query.update(self.base_params)
         return self._call_api(endpoint, query, self.base_data)
 
-    def search(self, search_query, continuation=None):
+    def search(self, search_query, continuation=None) -> dict:
         """Make a request to the search endpoint.
 
         :param str search_query:
             The query to search.
-        :rtype: dict
+    
         :returns:
             Raw search query results.
         """
         endpoint = f'{self.base_url}/search'
-        query = {
-            'query': search_query
-        }
+        query = { 'query': search_query }
         query.update(self.base_params)
         data = {}
         if continuation:
@@ -470,7 +467,7 @@ class InnerTube:
         data.update(self.base_data)
         return self._call_api(endpoint, query, data)
 
-    def verify_age(self, video_id):
+    def verify_age(self, video_id) -> dict:
         """Make a request to the age_verify endpoint.
 
         Notable examples of the types of video this verification step is for:
@@ -479,7 +476,7 @@ class InnerTube:
 
         :param str video_id:
             The video id to get player info for.
-        :rtype: dict
+
         :returns:
             Returns information that includes a URL for bypassing certain restrictions.
         """

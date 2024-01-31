@@ -12,7 +12,7 @@ from urllib import request
 
 from youtube_get.utils.exceptions import RegexMatchError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class DeferredGeneratorList:
@@ -181,8 +181,7 @@ def setup_logger(level: int = logging.ERROR, log_filename: Optional[str] = None)
     date_fmt = "%H:%M:%S"
     formatter = logging.Formatter(fmt, datefmt=date_fmt)
 
-    # https://github.com/pytube/pytube/issues/163
-    logger = logging.getLogger("pytube")
+    logger = logging.getLogger("YouTube-Get-Global-Logger")
     logger.setLevel(level)
 
     stream_handler = logging.StreamHandler()

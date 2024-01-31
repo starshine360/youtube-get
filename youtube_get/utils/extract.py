@@ -9,20 +9,21 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, quote, urlencode, urlparse
 
 from youtube_get.utils.cipher import Cipher
-from youtube_get.utils.exceptions import HTMLParseError, LiveStreamError, RegexMatchError
+from youtube_get.utils.exceptions import HTMLParseError, RegexMatchError, VideoUnavailable
 from youtube_get.utils.helpers import regex_search
 from youtube_get.utils.metadata import YouTubeMetadata
 from youtube_get.utils.parser import parse_for_object, parse_for_all_objects
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 def publish_date(watch_html: str):
     """Extract publish date
+
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: str
+ 
     :returns:
         Publish date of the video.
     """
@@ -41,7 +42,7 @@ def recording_available(watch_html):
 
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: bool
+
     :returns:
         Whether or not the content is private.
     """
@@ -79,7 +80,7 @@ def is_age_restricted(watch_html: str) -> bool:
 
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: bool
+   
     :returns:
         Whether or not the content is age restricted.
     """
@@ -100,7 +101,7 @@ def playability_status(watch_html: str) -> (str, str):
 
     :param str watch_html:
         The html contents of the watch page.
-    :rtype: bool
+
     :returns:
         Playability status and reason of the video.
     """
@@ -127,7 +128,7 @@ def video_id(url: str) -> str:
 
     :param str url:
         A YouTube url containing a video id.
-    :rtype: str
+
     :returns:
         YouTube video id.
     """
@@ -144,7 +145,7 @@ def playlist_id(url: str) -> str:
 
     :param str url:
         A YouTube url containing a playlist id.
-    :rtype: str
+
     :returns:
         YouTube playlist id.
     """
@@ -219,10 +220,9 @@ def video_info_url_age_restricted(video_id: str, embed_html: str) -> str:
         A YouTube video identifier.
     :param str embed_html:
         The html contents of the embed page (for age restricted videos).
-    :rtype: str
+
     :returns:
-        :samp:`https://youtube.com/get_video_info` with necessary GET
-        parameters.
+        :samp:`https://youtube.com/get_video_info` with necessary GET parameters.
     """
     try:
         sts = regex_search(r'"sts"\s*:\s*(\d+)', embed_html, group=1)
@@ -251,8 +251,7 @@ def _video_info_url(params: OrderedDict) -> str:
 def js_url(html: str) -> str:
     """Get the base JavaScript url.
 
-    Construct the base JavaScript url, which contains the decipher
-    "transforms".
+    Construct the base JavaScript url, which contains the decipher "transforms".
 
     :param str html:
         The html contents of the watch page.
@@ -277,7 +276,7 @@ def mime_type_codec(mime_type_codec: str) -> Tuple[str, List[str]]:
 
     :param str mime_type_codec:
         String containing mime type and codecs.
-    :rtype: tuple
+
     :returns:
         The mime type and a list of codecs.
 
@@ -296,7 +295,7 @@ def get_ytplayer_js(html: str) -> Any:
 
     :param str html
         The html contents of the watch page.
-    :rtype: str
+
     :returns:
         Path to YouTube's base.js file.
     """
@@ -311,9 +310,7 @@ def get_ytplayer_js(html: str) -> Any:
             yt_player_js = function_match.group(1)
             return yt_player_js
 
-    raise RegexMatchError(
-        caller="get_ytplayer_js", pattern="js_url_patterns"
-    )
+    raise RegexMatchError(caller="get_ytplayer_js", pattern="js_url_patterns")
 
 
 def get_ytplayer_config(html: str) -> Any:
@@ -325,7 +322,7 @@ def get_ytplayer_config(html: str) -> Any:
 
     :param str html:
         The html contents of the watch page.
-    :rtype: str
+ 
     :returns:
         Substring of the html containing the encoded manifest data.
     """
@@ -357,9 +354,7 @@ def get_ytplayer_config(html: str) -> Any:
         except HTMLParseError:
             continue
 
-    raise RegexMatchError(
-        caller="get_ytplayer_config", pattern="config_patterns, setconfig_patterns"
-    )
+    raise RegexMatchError(caller="get_ytplayer_config", pattern="config_patterns, setconfig_patterns")
 
 
 def get_ytcfg(html: str) -> str:
@@ -370,7 +365,7 @@ def get_ytcfg(html: str) -> str:
 
     :param str html:
         The html contents of the watch page.
-    :rtype: str
+
     :returns:
         Substring of the html containing the encoded manifest data.
     """
@@ -416,7 +411,7 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
                 .get("liveStreamability")
             )
             if live_stream:
-                raise LiveStreamError("UNKNOWN")
+                raise VideoUnavailable("UNKNOWN", "This is live stream.")
         # 403 Forbidden fix.
         if "signature" in url or (
             "s" not in stream and ("&sig=" in url or "&lsig=" in url)
@@ -429,20 +424,16 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
 
         signature = cipher.get_signature(ciphered_signature=stream["s"])
 
-        logger.debug(
-            "finished descrambling signature for itag=%s", stream["itag"]
-        )
+        logger.debug("finished descrambling signature for itag=%s", stream["itag"])
+        
         parsed_url = urlparse(url)
 
         # Convert query params off url to dict
         query_params = parse_qs(urlparse(url).query)
-        query_params = {
-            k: v[0] for k,v in query_params.items()
-        }
+        query_params = { k: v[0] for k,v in query_params.items() }
         query_params['sig'] = signature
         if 'ratebypass' not in query_params.keys():
             # Cipher n to get the updated value
-
             initial_n = list(query_params['n'])
             new_n = cipher.calculate_n(initial_n)
             query_params['n'] = new_n

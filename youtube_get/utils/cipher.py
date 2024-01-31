@@ -21,7 +21,7 @@ from youtube_get.utils.exceptions import ExtractError, RegexMatchError
 from youtube_get.utils.helpers import cache, regex_search
 from youtube_get.utils.parser import find_object_from_startpoint, throttling_array_split
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class Cipher:
@@ -30,9 +30,7 @@ class Cipher:
         var_regex = re.compile(r"^\w+\W")
         var_match = var_regex.search(self.transform_plan[0])
         if not var_match:
-            raise RegexMatchError(
-                caller="__init__", pattern=var_regex.pattern
-            )
+            raise RegexMatchError(caller="__init__", pattern=var_regex.pattern)
         var = var_match.group(0)[:-1]
         self.transform_map = get_transform_map(js, var)
         
@@ -204,11 +202,9 @@ def get_transform_object(js: str, var: str) -> List[str]:
     which contains these functions, for example, given the function call
     ``DE.AJ(a,15)`` returned by the transform plan, "DE" would be the var.
 
-    :param str js:
-        The contents of the base.js asset file.
-    :param str var:
-        The obfuscated variable name that stores an object with all functions
-        that descrambles the signature.
+    Args:
+        js (str): The contents of the base.js asset file.
+        var (str): The obfuscated variable name that stores an object with all functions that descrambles the signature.
 
     **Example**:
 
@@ -254,10 +250,10 @@ def get_transform_map(js: str, var: str) -> Dict:
 def get_throttling_function_name(js: str) -> str:
     """Extract the name of the function that computes the throttling parameter.
 
-    :param str js:
-        The contents of the base.js asset file.
-    :rtype: str
-    :returns:
+    Args:
+        js (str): The contents of the base.js asset file.
+    
+    Returns:
         The name of the function used to compute the throttling parameter.
     """
     function_patterns = [
@@ -292,9 +288,7 @@ def get_throttling_function_name(js: str) -> str:
                     array = [x.strip() for x in array]
                     return array[int(idx)]
 
-    raise RegexMatchError(
-        caller="get_throttling_function_name", pattern="multiple"
-    )
+    raise RegexMatchError(caller="get_throttling_function_name", pattern="multiple")
 
 
 def get_throttling_function_code(js: str) -> str:
@@ -302,7 +296,7 @@ def get_throttling_function_code(js: str) -> str:
 
     :param str js:
         The contents of the base.js asset file.
-    :rtype: str
+
     :returns:
         The name of the function used to compute the throttling parameter.
     """
@@ -684,10 +678,7 @@ def map_functions(js_func: str) -> Callable:
         # function(a,b){var c=a[0];a[0]=a[b%a.length];a[b]=c}
         (r"{var\s\w=\w\[0\];\w\[0\]=\w\[\w\%\w.length\];\w\[\w\]=\w}", swap),
         # function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}
-        (
-            r"{var\s\w=\w\[0\];\w\[0\]=\w\[\w\%\w.length\];\w\[\w\%\w.length\]=\w}",
-            swap,
-        ),
+        (r"{var\s\w=\w\[0\];\w\[0\]=\w\[\w\%\w.length\];\w\[\w\%\w.length\]=\w}", swap),
     )
 
     for pattern, fn in mapper:

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from datetime import date, datetime
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-from youtube_get.modules.youtube import YouTube
+from youtube_get.contrib.youtube import YouTube
 from youtube_get.utils import extract, request
 from youtube_get.utils.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
 

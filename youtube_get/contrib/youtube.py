@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class YouTube:
-    """Core developer interface for youtube-get."""
+    """Core developer interface for YouTube-Get."""
 
     def __init__(
         self,
@@ -431,3 +431,4 @@ class YouTube:
             The video id of the YouTube video.    
         """
         return YouTube(f"https://www.youtube.com/watch?v={video_id}")
+
