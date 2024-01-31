@@ -443,9 +443,7 @@ class InnerTube:
             Raw player info results.
         """
         endpoint = f'{self.base_url}/player'
-        query = {
-            'videoId': video_id,
-        }
+        query = { 'videoId': video_id }
         query.update(self.base_params)
         return self._call_api(endpoint, query, self.base_data)
 

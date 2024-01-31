@@ -9,7 +9,7 @@ from youtube_get.contrib.youtube import YouTube
 from youtube_get.utils import extract, request
 from youtube_get.utils.helpers import cache, DeferredGeneratorList, install_proxy, uniqueify
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class Playlist(Sequence):

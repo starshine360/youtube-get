@@ -79,7 +79,7 @@ def is_age_restricted(watch_html: str) -> bool:
     """Check if content is age restricted.
 
     :param str watch_html:
-        The html contents of the watch page.
+        The html contents of the watch page for a youtube video.
    
     :returns:
         Whether or not the content is age restricted.
@@ -124,8 +124,7 @@ def video_id(url: str) -> str:
 
     - :samp:`https://youtube.com/watch?v={video_id}`
     - :samp:`https://youtube.com/embed/{video_id}`
-    - :samp:`https://youtu.be/{video_id}`
-
+ 
     :param str url:
         A YouTube url containing a video id.
 

@@ -7,7 +7,7 @@ from youtube_get import YouTube
 from youtube_get.utils.innertube import InnerTube
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class Search:

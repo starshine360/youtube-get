@@ -16,7 +16,7 @@ from youtube_get.utils.metadata import YouTubeMetadata
 from youtube_get.utils.monostate import Monostate
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("YouTube-Get-Global-Logger")
 
 
 class YouTube:
@@ -148,6 +148,16 @@ class YouTube:
         return self._initial_data
 
     @property
+    def vid_info(self) -> dict:
+        """Parse the raw vid info and return the parsed result.
+        """
+        if self._vid_info:
+            return self._vid_info
+        innertube = InnerTube(use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
+        self._vid_info = innertube.player(self.video_id)
+        return self._vid_info
+
+    @property
     def streaming_data(self):
         """Return streamingData from video info."""
         if 'streamingData' in self.vid_info:
@@ -224,21 +234,6 @@ class YouTube:
                     raise exceptions.VideoUnavailable(video_id=self.video_id)
             elif status == 'LIVE_STREAM':
                 raise exceptions.LiveStreamError(video_id=self.video_id)
-
-    @property
-    def vid_info(self):
-        """Parse the raw vid info and return the parsed result.
-
-        :rtype: Dict[Any, Any]
-        """
-        if self._vid_info:
-            return self._vid_info
-
-        innertube = InnerTube(use_oauth=self.use_oauth, allow_cache=self.allow_oauth_cache)
-
-        innertube_response = innertube.player(self.video_id)
-        self._vid_info = innertube_response
-        return self._vid_info
 
     def bypass_age_gate(self):
         """Attempt to update the vid_info by bypassing the age gate."""
