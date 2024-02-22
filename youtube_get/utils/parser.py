@@ -37,7 +37,7 @@ def parse_for_all_objects(html: str, preceding_regex: str):
     return result
 
 
-def parse_for_object(html: str, preceding_regex: str):
+def parse_for_object(html: str, preceding_regex: str) -> dict:
     """Parses input html to find the first match for the input starting point.
 
     Args:

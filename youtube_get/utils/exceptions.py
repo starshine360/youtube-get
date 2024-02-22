@@ -40,6 +40,8 @@ class VideoUnavailable(YouTubeError):
         """
         :param str video_id:
             A YouTube video identifier.
+        :param str reason:
+            Specify the reason of this error.
         """
         self.video_id = video_id
         self.reason = reason

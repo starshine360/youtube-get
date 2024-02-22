@@ -210,30 +210,16 @@ class YouTube:
         Raises different exceptions based on why the video is unavailable,
         otherwise does nothing.
         """
-        status, messages = extract.playability_status(self.watch_html)
+        status, reason = extract.playability_status(self.watch_html)
 
-        for reason in messages:
-            if status == 'UNPLAYABLE':
-                if reason == (
-                    'Join this channel to get access to members-only content '
-                    'like this video, and other exclusive perks.'
-                ):
-                    raise exceptions.MembersOnly(video_id=self.video_id)
-                elif reason == 'This live stream recording is not available.':
-                    raise exceptions.RecordingUnavailable(video_id=self.video_id)
-                else:
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
-            elif status == 'LOGIN_REQUIRED':
-                if reason == (
-                    'This is a private video. '
-                    'Please sign in to verify that you may see it.'
-                ):
-                    raise exceptions.VideoPrivate(video_id=self.video_id)
-            elif status == 'ERROR':
-                if reason == 'Video unavailable':
-                    raise exceptions.VideoUnavailable(video_id=self.video_id)
-            elif status == 'LIVE_STREAM':
-                raise exceptions.LiveStreamError(video_id=self.video_id)
+        if status == 'UNPLAYABLE':
+            raise exceptions.VideoUnavailable(video_id=self.video_id, reason=reason)
+        elif status == 'LOGIN_REQUIRED':
+            raise exceptions.VideoUnavailable(video_id=self.video_id, reason=reason)
+        elif status == 'ERROR':
+            raise exceptions.VideoUnavailable(video_id=self.video_id, reason=reason)
+        elif status == 'LIVE_STREAM':
+            raise exceptions.VideoUnavailable(video_id=self.video_id, reason=reason)
 
     def bypass_age_gate(self):
         """Attempt to update the vid_info by bypassing the age gate."""
@@ -249,7 +235,7 @@ class YouTube:
         # If we still can't access the video, raise an exception
         # (tier 3 age restriction)
         if playability_status == 'UNPLAYABLE':
-            raise exceptions.AgeRestrictedError(self.video_id)
+            raise exceptions.VideoUnavailable(self.video_id)
 
         self._vid_info = innertube_response
 

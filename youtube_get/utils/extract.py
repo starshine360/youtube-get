@@ -110,11 +110,8 @@ def playability_status(watch_html: str) -> (str, str):
     if 'liveStreamability' in status_dict:
         return 'LIVE_STREAM', 'Video is a live stream.'
     if 'status' in status_dict:
-        if 'reason' in status_dict:
-            return status_dict['status'], [status_dict['reason']]
-        if 'messages' in status_dict:
-            return status_dict['status'], status_dict['messages']
-    return None, [None]
+        return status_dict['status'], status_dict.get('reason', None)
+    return None, None
 
 
 def video_id(url: str) -> str:
@@ -506,14 +503,14 @@ def initial_data(watch_html: str) -> dict:
     raise RegexMatchError(caller='initial_data', pattern='initial_data_pattern')
 
 
-def initial_player_response(watch_html: str) -> str:
+def initial_player_response(watch_html: str) -> dict:
     """Extract the ytInitialPlayerResponse json from the watch_html page.
 
     This mostly contains metadata necessary for rendering the page on-load,
     such as video information, copyright notices, etc.
 
-    @param watch_html: Html of the watch page
-    @return:
+    Args:
+        watch_html (str): Html of the watch page
     """
     patterns = [
         r"window\[['\"]ytInitialPlayerResponse['\"]]\s*=\s*",
@@ -525,10 +522,7 @@ def initial_player_response(watch_html: str) -> str:
         except HTMLParseError:
             pass
 
-    raise RegexMatchError(
-        caller='initial_player_response',
-        pattern='initial_player_response_pattern'
-    )
+    raise RegexMatchError(caller='initial_player_response', pattern='initial_player_response_pattern')
 
 
 def metadata(initial_data) -> Optional[YouTubeMetadata]:
